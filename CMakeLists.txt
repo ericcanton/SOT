@@ -32,6 +32,9 @@ install(FILES ${MAIN_HEADER} DESTINATION include)
 file(GLOB BITS_HEADERS "include/sot_bits/*.h")
 install(FILES ${BITS_HEADERS} DESTINATION include/sot_bits)
 
+# main.cpp example
+add_subdirectory(src)
+
 # Test
 enable_testing()
 add_test (NAME test_kNN COMMAND test_kNN)
