@@ -8,32 +8,35 @@
 #ifndef SOT_ADAPTIVE_SAMPLING_H
 #define SOT_ADAPTIVE_SAMPLING_H
 
+#include <memory>
 #include "common.h"
 #include "utils.h"
 #include "problem.h"
 #include "genetic_algorithm.h"
 
-//!SOT namespace
-namespace sot {
-    
+//! SOT namespace
+namespace sot
+{
+
     //!  Abstract class for a SOT adaptive sampling class
     /*!
      * This is the abstract class that should be used as a Base class for all
-     * sampling objects in SOT. The sampling object is used to propose new 
+     * sampling objects in SOT. The sampling object is used to propose new
      * evaluations after the initial experimental design has been evaluated.
      *
      * \class Sampling
      * \author David Eriksson, dme65@cornell.edu
      */
-    
-    class Sampling {
+
+    class Sampling
+    {
     public:
         //! Virtual method for reseting the object
         /*!
          * \param budget The remaining evaluation budget
          */
         virtual void reset(int budget) = 0;
-        
+
         //! Virtual method for proposing new evaluations
         /*!
          * \param xBest The best solution found so far
@@ -44,32 +47,33 @@ namespace sot {
          */
         virtual mat makePoints(const vec &xBest, const mat &points, const vec &sigma, int newPoints) = 0;
     };
-    
+
     //! Stochastic RBF
     /*!
      * This is an implementation of the SRBF method that generates the candidate
-     * points by perturbing each variable by a normally distrubuted realization. 
+     * points by perturbing each variable by a normally distrubuted realization.
      *
      * \class SRBF
      *
-     * \tparam MeritFunction The merit function is used to pick the most promising out of 
+     * \tparam MeritFunction The merit function is used to pick the most promising out of
      * the generated candidate points.
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    template<class MeritFunction = MeritWeightedDistance>
-    class SRBF : public Sampling {
+    template <class MeritFunction = MeritWeightedDistance>
+    class SRBF : public Sampling
+    {
     protected:
-        std::shared_ptr<Problem> mData; /*!< A shared pointer to the optimization problem */
+        std::shared_ptr<Problem> mData;   /*!< A shared pointer to the optimization problem */
         std::shared_ptr<Surrogate> mSurf; /*!< A shared pointer to the surrogate model */
-        int mNumCand; /*!< Number of candidate points that are generated in makePoints */
-        int mDim; /*!< Number of dimensions (extracted from mData) */
-        vec mxLow; /*!< Lower variable bounds (extracted from mData) */
-        vec mxUp; /*!< Upper variable bounds (extracted from mData) */
-        double mDistTol; /*!< Distance tolerance */
-        int mNumEvals = 0; /*!< Current evaluation count */
-        int mBudget; /*!< Evaluation budget for the adaptive sampling phase */
-        MeritFunction mMerit; /*!< Merit function that is used for picking candidate points */
+        int mNumCand;                     /*!< Number of candidate points that are generated in makePoints */
+        int mDim;                         /*!< Number of dimensions (extracted from mData) */
+        vec mxLow;                        /*!< Lower variable bounds (extracted from mData) */
+        vec mxUp;                         /*!< Upper variable bounds (extracted from mData) */
+        double mDistTol;                  /*!< Distance tolerance */
+        int mNumEvals = 0;                /*!< Current evaluation count */
+        int mBudget;                      /*!< Evaluation budget for the adaptive sampling phase */
+        MeritFunction mMerit;             /*!< Merit function that is used for picking candidate points */
     public:
         //! Constructor
         /*!
@@ -78,7 +82,8 @@ namespace sot {
          * \param numCand Number of candidate points that are generated in makePoints
          * \param budget Evaluation budget for the adaptive sampling phase
          */
-        SRBF(const std::shared_ptr<Problem>& data, const std::shared_ptr<Surrogate>& surf, int numCand, int budget) {
+        SRBF(const std::shared_ptr<Problem> &data, const std::shared_ptr<Surrogate> &surf, int numCand, int budget)
+        {
             mData = std::shared_ptr<Problem>(data);
             mSurf = std::shared_ptr<Surrogate>(surf);
             mBudget = budget;
@@ -86,18 +91,19 @@ namespace sot {
             mDim = data->dim();
             mxLow = data->lBounds();
             mxUp = data->uBounds();
-            mDistTol = 1e-3*sqrt(arma::sum(arma::square(mxUp - mxLow)));
+            mDistTol = 1e-3 * sqrt(arma::sum(arma::square(mxUp - mxLow)));
         }
-        
+
         //! Resets the object for a new budget (useful if a strategy restarts)
         /*!
          * \param budget New evaluation budget
          */
-        void reset(int budget) {
+        void reset(int budget)
+        {
             mBudget = budget;
             mNumEvals = 0;
         }
-        
+
         //! Proposes new evaluations
         /*!
          * \param xBest The best solution found so far
@@ -106,62 +112,68 @@ namespace sot {
          * \param newPoints Number of new evaluations to be generated
          * \return The proposed points
          */
-        mat makePoints(const vec &xBest, const mat &points, const vec &sigma, int newPoints) {
+        mat makePoints(const vec &xBest, const mat &points, const vec &sigma, int newPoints)
+        {
 
             // Generate perturbations
             mat cand = arma::repmat(xBest, 1, mNumCand);
             mat pert = arma::randn(mDim, mNumCand);
             pert.each_col() %= sigma;
             cand += pert;
-            
-            for(int i=0; i < mNumCand; i++) {
-                for(int j=0; j < mDim; j++) {
-                    if(cand(j, i) > mxUp(j)) { // 
-                        cand(j, i) = fmax(2*mxUp(j) - cand(j, i), mxLow(j)); 
+
+            for (int i = 0; i < mNumCand; i++)
+            {
+                for (int j = 0; j < mDim; j++)
+                {
+                    if (cand(j, i) > mxUp(j))
+                    { //
+                        cand(j, i) = fmax(2 * mxUp(j) - cand(j, i), mxLow(j));
                     }
-                    else if(cand(j, i) < mxLow(j)) { 
-                        cand(j, i) = fmin(2*mxLow(j) - cand(j, i), mxUp(j)); 
+                    else if (cand(j, i) < mxLow(j))
+                    {
+                        cand(j, i) = fmin(2 * mxLow(j) - cand(j, i), mxUp(j));
                     }
                 }
             }
-            
+
             // Update counter
             mNumEvals += newPoints;
-            
+
             return mMerit.pickPoints(cand, mSurf, points, newPoints, mDistTol);
         }
     };
-    
+
     //! DYnamic COordinate search using Response Surface models
     /*!
      * This is an implementation of the DYCORS method that perturbs fewer and
      * fewer variables as the optimization proceeds. The candidate points
      * are generated by perturbing each variable using the probability proposed
-     * by DYCORS. 
+     * by DYCORS.
      *
      * \class DYCORS
      *
-     * \tparam MeritFunction The merit function is used to pick the most promising out of 
+     * \tparam MeritFunction The merit function is used to pick the most promising out of
      * the generated candidate points.
-     * 
+     *
      * \todo Should use SRBF as a Base class
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
      */
-    
-    template<class MeritFunction = MeritWeightedDistance>
-    class DYCORS : public Sampling {
+
+    template <class MeritFunction = MeritWeightedDistance>
+    class DYCORS : public Sampling
+    {
     protected:
-        std::shared_ptr<Problem> mData; /*!< A shared pointer to the optimization problem */
+        std::shared_ptr<Problem> mData;   /*!< A shared pointer to the optimization problem */
         std::shared_ptr<Surrogate> mSurf; /*!< A shared pointer to the surrogate model */
-        int mNumCand; /*!< Number of candidate points that are generated in makePoints */
-        int mDim; /*!< Number of dimensions (extracted from mData) */
-        vec mxLow; /*!< Lower variable bounds (extracted from mData) */
-        vec mxUp;  /*!< Upper variable bounds (extracted from mData) */
-        double mDistTol; /*!< Distance tolerance */
-        int mNumEvals = 0; /*!< Current evaluation count */
-        int mBudget; /*!< Evaluation budget for the adaptive sampling phase */
-        MeritFunction mMerit; /*!< Merit function that is used for picking candidate points */
+        int mNumCand;                     /*!< Number of candidate points that are generated in makePoints */
+        int mDim;                         /*!< Number of dimensions (extracted from mData) */
+        vec mxLow;                        /*!< Lower variable bounds (extracted from mData) */
+        vec mxUp;                         /*!< Upper variable bounds (extracted from mData) */
+        double mDistTol;                  /*!< Distance tolerance */
+        int mNumEvals = 0;                /*!< Current evaluation count */
+        int mBudget;                      /*!< Evaluation budget for the adaptive sampling phase */
+        MeritFunction mMerit;             /*!< Merit function that is used for picking candidate points */
     public:
         //! Constructor
         /*!
@@ -170,8 +182,9 @@ namespace sot {
          * \param numCand Number of candidate points that are generated in makePoints
          * \param budget Evaluation budget for the adaptive sampling phase
          */
-        DYCORS(const std::shared_ptr<Problem>& data, const std::shared_ptr<Surrogate>& surf, 
-                int numCand, int budget) {
+        DYCORS(const std::shared_ptr<Problem> &data, const std::shared_ptr<Surrogate> &surf,
+               int numCand, int budget)
+        {
             mData = std::shared_ptr<Problem>(data);
             mSurf = std::shared_ptr<Surrogate>(surf);
             mBudget = budget;
@@ -179,18 +192,19 @@ namespace sot {
             mDim = data->dim();
             mxLow = data->lBounds();
             mxUp = data->uBounds();
-            mDistTol = 1e-3*sqrt(arma::sum(arma::square(mxUp - mxLow)));
+            mDistTol = 1e-3 * sqrt(arma::sum(arma::square(mxUp - mxLow)));
         }
-        
+
         //! Resets the object for a new budget (useful if a strategy restarts)
         /*!
          * \param budget New evaluation budget
          */
-        void reset(int budget) {
+        void reset(int budget)
+        {
             mBudget = budget;
             mNumEvals = 0;
         }
-        
+
         //! Proposes new evaluations
         /*!
          * \param xBest The best solution found so far
@@ -199,44 +213,52 @@ namespace sot {
          * \param newPoints Number of new evaluations to be generated
          * \return The proposed points
          */
-        mat makePoints(const vec &xBest, const mat &points, const vec &sigma, int newPoints) {                
-            double dds_prob = std::min(20.0/mDim, 1.0) * 
-                (1.0 - (std::log(mNumEvals + 1.0) / std::log(double(mBudget))));
+        mat makePoints(const vec &xBest, const mat &points, const vec &sigma, int newPoints)
+        {
+            double dds_prob = std::min(20.0 / mDim, 1.0) *
+                              (1.0 - (std::log(mNumEvals + 1.0) / std::log(double(mBudget))));
             mat cand = arma::repmat(xBest, 1, mNumCand);
-            
-            for(int i=0; i < mNumCand; i++) {
+
+            for (int i = 0; i < mNumCand; i++)
+            {
 
                 int count = 0;
-                for(int j=0; j < mDim; j++) {
-                    if(rand() < dds_prob) {
+                for (int j = 0; j < mDim; j++)
+                {
+                    if (rand() < dds_prob)
+                    {
                         count++;
-                        cand(j, i) += sigma(j)*randn();
+                        cand(j, i) += sigma(j) * randn();
                     }
                 }
                 // If no index was perturbed we force one
-                if(count == 0) {
-                    int ind = randi(mDim-1);
-                    cand(ind, i) += sigma(ind)*randn();
+                if (count == 0)
+                {
+                    int ind = randi(mDim - 1);
+                    cand(ind, i) += sigma(ind) * randn();
                 }
 
                 // Make sure we are still in the domain
-                for(int j=0; j < mDim; j++) {
-                    if(cand(j, i) > mxUp(j)) { 
-                        cand(j, i) = fmax(2*mxUp(j) - cand(j, i), mxLow(j)); 
+                for (int j = 0; j < mDim; j++)
+                {
+                    if (cand(j, i) > mxUp(j))
+                    {
+                        cand(j, i) = fmax(2 * mxUp(j) - cand(j, i), mxLow(j));
                     }
-                    else if(cand(j, i) < mxLow(j)) { 
-                        cand(j, i) = fmin(2*mxLow(j) - cand(j, i), mxUp(j)); 
+                    else if (cand(j, i) < mxLow(j))
+                    {
+                        cand(j, i) = fmin(2 * mxLow(j) - cand(j, i), mxUp(j));
                     }
                 }
             }
-            
+
             // Update counter
             mNumEvals += newPoints;
-            
+
             return mMerit.pickPoints(cand, mSurf, points, newPoints, mDistTol);
         }
     };
-    
+
     //! Uniformly chosen candidate points
     /*!
      * This method generates each candidate points as a uniformly chosen point from
@@ -244,26 +266,27 @@ namespace sot {
      *
      * \class Uniform
      *
-     * \tparam MeritFunction The merit function is used to pick the most promising out of 
+     * \tparam MeritFunction The merit function is used to pick the most promising out of
      * the generated candidate points.
-     * 
+     *
      * \todo Should use SRBF as a Base class
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
-     */    
-    template<class MeritFunction = MeritWeightedDistance>
-    class Uniform : public Sampling {
+     */
+    template <class MeritFunction = MeritWeightedDistance>
+    class Uniform : public Sampling
+    {
     protected:
-        std::shared_ptr<Problem> mData; /*!< A shared pointer to the optimization problem */
+        std::shared_ptr<Problem> mData;   /*!< A shared pointer to the optimization problem */
         std::shared_ptr<Surrogate> mSurf; /*!< A shared pointer to the surrogate model */
-        int mNumCand; /*!< Number of candidate points that are generated in makePoints */
-        int mDim; /*!< Number of dimensions (extracted from mData) */
-        vec mxLow; /*!< Lower variable bounds (extracted from mData) */
-        vec mxUp;  /*!< Upper variable bounds (extracted from mData) */
-        double mDistTol; /*!< Distance tolerance */
-        int mNumEvals = 0; /*!< Current evaluation count */
-        int mBudget; /*!< Evaluation budget for the adaptive sampling phase */
-        MeritFunction mMerit; /*!< Merit function that is used for picking candidate points */
+        int mNumCand;                     /*!< Number of candidate points that are generated in makePoints */
+        int mDim;                         /*!< Number of dimensions (extracted from mData) */
+        vec mxLow;                        /*!< Lower variable bounds (extracted from mData) */
+        vec mxUp;                         /*!< Upper variable bounds (extracted from mData) */
+        double mDistTol;                  /*!< Distance tolerance */
+        int mNumEvals = 0;                /*!< Current evaluation count */
+        int mBudget;                      /*!< Evaluation budget for the adaptive sampling phase */
+        MeritFunction mMerit;             /*!< Merit function that is used for picking candidate points */
     public:
         //! Constructor
         /*!
@@ -272,7 +295,8 @@ namespace sot {
          * \param numCand Number of candidate points that are generated in makePoints
          * \param budget Evaluation budget for the adaptive sampling phase
          */
-        Uniform(const std::shared_ptr<Problem>& data, const std::shared_ptr<Surrogate>& surf, int numCand, int budget) {
+        Uniform(const std::shared_ptr<Problem> &data, const std::shared_ptr<Surrogate> &surf, int numCand, int budget)
+        {
             mData = std::shared_ptr<Problem>(data);
             mSurf = std::shared_ptr<Surrogate>(surf);
             mBudget = budget;
@@ -280,18 +304,19 @@ namespace sot {
             mDim = data->dim();
             mxLow = data->lBounds();
             mxUp = data->uBounds();
-            mDistTol = 1e-3*sqrt(arma::sum(arma::square(mxUp - mxLow)));
+            mDistTol = 1e-3 * sqrt(arma::sum(arma::square(mxUp - mxLow)));
         }
-        
+
         //! Resets the object for a new budget (useful if a strategy restarts)
         /*!
          * \param budget New evaluation budget
          */
-        void reset(int budget) {
+        void reset(int budget)
+        {
             mBudget = budget;
             mNumEvals = 0;
         }
-        
+
         //! Proposes new evaluations
         /*!
          * \param xBest The best solution found so far
@@ -300,16 +325,18 @@ namespace sot {
          * \param newPoints Number of new evaluations to be generated
          * \return The proposed points
          */
-        mat makePoints(const vec &xBest, const mat &points, const vec &sigma, int newPoints) {
-         
+        mat makePoints(const vec &xBest, const mat &points, const vec &sigma, int newPoints)
+        {
+
             mat cand = arma::randu<mat>(mDim, mNumCand);
-            for(int j=0; j < mDim; j++) {
+            for (int j = 0; j < mDim; j++)
+            {
                 cand.row(j) = mxLow(j) + (mxUp(j) - mxLow(j)) * cand.row(j);
             }
-        
+
             // Update counter
             mNumEvals += newPoints;
-            
+
             return mMerit.pickPoints(cand, mSurf, points, newPoints, mDistTol);
         }
     };
@@ -323,17 +350,18 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    class GAWrapper : public Problem {
+    class GAWrapper : public Problem
+    {
     protected:
-        std::shared_ptr<Surrogate> mSurf; /*!< Surrogate model */
-        int mDim; /*!< Number of dimensions */  
-        mat mPoints; /*!< Previous evaluations */
-        vec mxLow; /*!< Lower variable bounds */     
-        vec mxUp; /*!< Upper variable bounds */     
-        vec mOptimum; /*!< Global minimizer */     
-        double mMinimum = 0; /*!< Global minimum value */   
-        std::string mName = "GA surrogate wrapper"; /*!< Optimization problem name */  
-        double mDistTol; /*!< Distance tolerance */
+        std::shared_ptr<Surrogate> mSurf;           /*!< Surrogate model */
+        int mDim;                                   /*!< Number of dimensions */
+        mat mPoints;                                /*!< Previous evaluations */
+        vec mxLow;                                  /*!< Lower variable bounds */
+        vec mxUp;                                   /*!< Upper variable bounds */
+        vec mOptimum;                               /*!< Global minimizer */
+        double mMinimum = 0;                        /*!< Global minimum value */
+        std::string mName = "GA surrogate wrapper"; /*!< Optimization problem name */
+        double mDistTol;                            /*!< Distance tolerance */
     public:
         //! Constructor
         /*!
@@ -343,7 +371,8 @@ namespace sot {
          * \param distTol Distance tolerance
          */
         GAWrapper(const std::shared_ptr<Problem> &data, const std::shared_ptr<Surrogate> &surf,
-                const mat &points, double distTol) {
+                  const mat &points, double distTol)
+        {
             mDim = data->dim();
             mxLow = data->lBounds();
             mxUp = data->uBounds();
@@ -363,16 +392,19 @@ namespace sot {
          * \param X Is the next points for which to evaluate the objective function
          * \return The values of the objective function at the input
          */
-        vec evals(const mat &X) const {
+        vec evals(const mat &X) const
+        {
 
             mat dists = arma::sqrt(squaredPairwiseDistance<mat>(mPoints, X));
             // Evaluate the Surrogate at the points
             vec surfVals;
 
-            if(mSurf->numPoints() == X.n_cols && mPoints.n_cols == X.n_cols) {
+            if (mSurf->numPoints() == X.n_cols && mPoints.n_cols == X.n_cols)
+            {
                 surfVals = mSurf->evals(X, dists);
             }
-            else {
+            else
+            {
                 surfVals = mSurf->evals(X);
             }
 
@@ -392,16 +424,17 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    class GASampling : public Sampling {
+    class GASampling : public Sampling
+    {
     protected:
-        std::shared_ptr<Problem> mData; /*!< A shared pointer to the optimization problem */
+        std::shared_ptr<Problem> mData;   /*!< A shared pointer to the optimization problem */
         std::shared_ptr<Surrogate> mSurf; /*!< A shared pointer to the surrogate model */
-        int mDim; /*!< Number of dimensions (extracted from mData) */
-        vec mxLow; /*!< Lower variable bounds (extracted from mData) */
-        vec mxUp;  /*!< Upper variable bounds (extracted from mData) */
-        int mNumIndividuals; /*!< Population size */
-        int mNumGenerations; /*!< Number of generations */
-        double mDistTol; /*!< Distance tolerance */
+        int mDim;                         /*!< Number of dimensions (extracted from mData) */
+        vec mxLow;                        /*!< Lower variable bounds (extracted from mData) */
+        vec mxUp;                         /*!< Upper variable bounds (extracted from mData) */
+        int mNumIndividuals;              /*!< Population size */
+        int mNumGenerations;              /*!< Number of generations */
+        double mDistTol;                  /*!< Distance tolerance */
     public:
         //! Constructor
         /*!
@@ -410,8 +443,9 @@ namespace sot {
          * \param numIndividuals Population size
          * \param numGenerations Number of generations
          */
-        GASampling(const std::shared_ptr<Problem>& data, const std::shared_ptr<Surrogate>& surf,
-                   int numIndividuals, int numGenerations) {
+        GASampling(const std::shared_ptr<Problem> &data, const std::shared_ptr<Surrogate> &surf,
+                   int numIndividuals, int numGenerations)
+        {
             mData = std::shared_ptr<Problem>(data);
             mSurf = std::shared_ptr<Surrogate>(surf);
             mDim = data->dim();
@@ -419,18 +453,21 @@ namespace sot {
             mxUp = data->uBounds();
             mNumIndividuals = numIndividuals;
             mNumGenerations = numGenerations;
-            mDistTol = 1e-3*sqrt(arma::sum(arma::square(mxUp - mxLow)));
+            mDistTol = 1e-3 * sqrt(arma::sum(arma::square(mxUp - mxLow)));
         }
-        
+
         void reset(int budget) {}
 
-        mat makePoints(const vec &xBest, const mat &points, const vec &sigma, int newPoints) {
-            if (newPoints > 1) {
+        mat makePoints(const vec &xBest, const mat &points, const vec &sigma, int newPoints)
+        {
+            if (newPoints > 1)
+            {
                 mat points2 = points;
                 mat xNew = arma::zeros(mDim, newPoints);
-                for(int i=0; i < newPoints; i++) {
+                for (int i = 0; i < newPoints; i++)
+                {
                     std::shared_ptr<Problem> gaWrapper(
-                            std::make_shared<GAWrapper>(mData, mSurf, points2, arma::norm(sigma)));
+                        std::make_shared<GAWrapper>(mData, mSurf, points2, arma::norm(sigma)));
                     GeneticAlgorithm ga(gaWrapper, mNumIndividuals, mNumGenerations);
                     Result res = ga.run();
                     xNew.col(i) = res.xBest();
@@ -438,9 +475,10 @@ namespace sot {
                 }
                 return xNew;
             }
-            else {
+            else
+            {
                 std::shared_ptr<Problem> gaWrapper(
-                        std::make_shared<GAWrapper>(mData, mSurf, points, arma::norm(sigma)));
+                    std::make_shared<GAWrapper>(mData, mSurf, points, arma::norm(sigma)));
                 GeneticAlgorithm ga(gaWrapper, mNumIndividuals, mNumGenerations);
                 Result res = ga.run();
                 return res.xBest();

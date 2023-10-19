@@ -8,22 +8,24 @@
 #include <sot.h>
 using namespace sot;
 
-int test_adaptive() {
+int test_adaptive()
+{
 
     int dim = 10;
     int maxEvals = 500;
 
     std::shared_ptr<Problem> data(std::make_shared<UnitBoxProblem<Ackley>>(dim));
-    std::shared_ptr<ExpDesign> slhd(std::make_shared<SLHD>(2*(dim+1), dim));
+    std::shared_ptr<ExpDesign> slhd(std::make_shared<SLHD>(2 * (dim + 1), dim));
     std::shared_ptr<Surrogate> rbf(std::make_shared<CubicRBF>(maxEvals, dim));
 
     std::vector<std::shared_ptr<Sampling>> adaptiveSampling;
-    adaptiveSampling.push_back(std::make_shared<DYCORS<>>(data, rbf, 100*dim, maxEvals - slhd->numPoints()));
-    adaptiveSampling.push_back(std::make_shared<SRBF<>>(data, rbf, 100*dim, maxEvals - slhd->numPoints()));
-    adaptiveSampling.push_back(std::make_shared<Uniform<>>(data, rbf, 100*dim, maxEvals - slhd->numPoints()));
+    adaptiveSampling.push_back(std::make_shared<DYCORS<>>(data, rbf, 100 * dim, maxEvals - slhd->numPoints()));
+    adaptiveSampling.push_back(std::make_shared<SRBF<>>(data, rbf, 100 * dim, maxEvals - slhd->numPoints()));
+    adaptiveSampling.push_back(std::make_shared<Uniform<>>(data, rbf, 100 * dim, maxEvals - slhd->numPoints()));
     adaptiveSampling.push_back(std::make_shared<GASampling>(data, rbf, 50, 100));
 
-    for(int i=0; i < adaptiveSampling.size(); i++) {
+    for (int i = 0; i < adaptiveSampling.size(); i++)
+    {
         mat X = fromUnitBox(slhd->generatePoints(), data->lBounds(), data->uBounds());
         vec fX = data->evals(X);
 
@@ -38,10 +40,12 @@ int test_adaptive() {
         vec newX = adaptiveSampling[i]->makePoints(xBest, X, sigma, 1);
 
         // Check that the new point is in the domain
-        if (not arma::all(newX <= data->uBounds())) { // LCOV_EXCL_LINE
+        if (not arma::all(newX <= data->uBounds()))
+        {                          // LCOV_EXCL_LINE
             return (EXIT_FAILURE); // LCOV_EXCL_LINE
         }
-        if (not arma::all(newX >= data->lBounds())) { // LCOV_EXCL_LINE
+        if (not arma::all(newX >= data->lBounds()))
+        {                          // LCOV_EXCL_LINE
             return (EXIT_FAILURE); // LCOV_EXCL_LINE
         }
 
@@ -49,11 +53,14 @@ int test_adaptive() {
         int n = 2;
         mat newXmat = adaptiveSampling[i]->makePoints(xBest, X, sigma, n);
 
-        for(int j=0; j < n; j++) {
-            if (not arma::all(newXmat.col(j) <= data->uBounds())) { // LCOV_EXCL_LINE
+        for (int j = 0; j < n; j++)
+        {
+            if (not arma::all(newXmat.col(j) <= data->uBounds()))
+            {                          // LCOV_EXCL_LINE
                 return (EXIT_FAILURE); // LCOV_EXCL_LINE
             }
-            if (not arma::all(newXmat.col(j) >= data->lBounds())) { // LCOV_EXCL_LINE
+            if (not arma::all(newXmat.col(j) >= data->lBounds()))
+            {                          // LCOV_EXCL_LINE
                 return (EXIT_FAILURE); // LCOV_EXCL_LINE
             }
         }
@@ -66,6 +73,7 @@ int test_adaptive() {
     return EXIT_SUCCESS;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     return test_adaptive();
 }
