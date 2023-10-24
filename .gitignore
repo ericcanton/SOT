@@ -12,3 +12,4 @@ CMakeDoxygenDefaults.cmake
 CTestTestfile.cmake
 Makefile
 *.a
+.vscode/tasks.json
