@@ -9,6 +9,7 @@
 #define SOT_ADAPTIVE_SAMPLING_H
 
 #include <memory>
+#include <armadillo>
 #include "common.h"
 #include "utils.h"
 #include "problem.h"

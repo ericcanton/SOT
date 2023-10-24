@@ -5,38 +5,40 @@
  * Created on 7/18/16.
  */
 
-
 #ifndef SOT_SHEPARD_H
 #define SOT_SHEPARD_H
 
+#include <armadillo>
 #include "common.h"
 #include "utils.h"
 #include "surrogate.h"
 
-//!SOT namespace
-namespace sot {
-    
+//! SOT namespace
+namespace sot
+{
+
     //!  %Shepard's method
     /*!
-     * Shepard's method, also known as Inverse Distance Weighting (IMW), assigns 
-     * function values to unknown points as a weighted average of the values 
-     * available at the known points. The weights are given by 
-     * \f$ w_i(x) = \|x-x_i\|^{-p/2}\f$ which makes it clear that points close 
+     * Shepard's method, also known as Inverse Distance Weighting (IMW), assigns
+     * function values to unknown points as a weighted average of the values
+     * available at the known points. The weights are given by
+     * \f$ w_i(x) = \|x-x_i\|^{-p/2}\f$ which makes it clear that points close
      * to \f$x\f$ are weighted higher.
      *
      * \class Shepard
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    class Shepard : public Surrogate {
+    class Shepard : public Surrogate
+    {
     protected:
-        double mp; /*!< Value of the exponent p */
+        double mp;               /*!< Value of the exponent p */
         double mDistTol = 1e-10; /*!< Distance tolerance for distinguishing points */
-        int mMaxPoints; /*!< Capacity */
-        int mNumPoints; /*!< Current number of points */
-        int mDim; /*!< Number of dimensions */
-        mat mX; /*!< Current points */
-        mat mfX; /*!< Current point values */
+        int mMaxPoints;          /*!< Capacity */
+        int mNumPoints;          /*!< Current number of points */
+        int mDim;                /*!< Number of dimensions */
+        mat mX;                  /*!< Current points */
+        mat mfX;                 /*!< Current point values */
     public:
         //! Constructor
         /*!
@@ -44,7 +46,8 @@ namespace sot {
          * \param dim Number of dimensions
          * \param p Value of the exponent, 2 is a common choice
          */
-        Shepard(int maxPoints, int dim, double p) {
+        Shepard(int maxPoints, int dim, double p)
+        {
             mNumPoints = 0;
             mMaxPoints = maxPoints;
             mp = p;
@@ -52,23 +55,29 @@ namespace sot {
             mX.resize(dim, maxPoints);
             mfX.resize(maxPoints);
         }
-        int dim() const {
+        int dim() const
+        {
             return mDim;
         }
-        int numPoints() const {
+        int numPoints() const
+        {
             return mNumPoints;
         }
-        vec X(int i) const {
+        vec X(int i) const
+        {
             return mX.col(i);
         }
-        mat X() const {
-            return mX.cols(0, mNumPoints-1);
+        mat X() const
+        {
+            return mX.cols(0, mNumPoints - 1);
         }
-        double fX(int i) const {
+        double fX(int i) const
+        {
             return mfX(i);
         }
-        vec fX() const {
-            return mfX.rows(0, mNumPoints-1);
+        vec fX() const
+        {
+            return mfX.rows(0, mNumPoints - 1);
         }
 
         //! Method for adding a point with a known value
@@ -78,8 +87,10 @@ namespace sot {
          *
          * \throws std::logic_error if one point is supplied or if capacity is exceeded
          */
-        void addPoint(const vec &point, double funVal) {
-            if(mNumPoints >= mMaxPoints) {
+        void addPoint(const vec &point, double funVal)
+        {
+            if (mNumPoints >= mMaxPoints)
+            {
                 throw std::logic_error("Capacity exceeded");
             }
             mX.col(mNumPoints) = point;
@@ -94,13 +105,16 @@ namespace sot {
          *
          * \throws std::logic_error if one point is supplied or if capacity is exceeded
          */
-        void addPoints(const mat &points, const vec &funVals) {
+        void addPoints(const mat &points, const vec &funVals)
+        {
             int n = points.n_cols;
 
-            if(n < 2) {
+            if (n < 2)
+            {
                 throw std::logic_error("Use add_point instead");
             }
-            if(mNumPoints + n > mMaxPoints) {
+            if (mNumPoints + n > mMaxPoints)
+            {
                 throw std::logic_error("Capacity exceeded");
             }
 
@@ -109,40 +123,48 @@ namespace sot {
             mNumPoints += n;
         }
 
-        double eval(const vec &point) const {
-            vec dists = squaredPointSetDistance<mat,vec>(point, X());
-            if (arma::min(dists) < mDistTol) { // Just return the closest point
+        double eval(const vec &point) const
+        {
+            vec dists = squaredPointSetDistance<mat, vec>(point, X());
+            if (arma::min(dists) < mDistTol)
+            { // Just return the closest point
                 arma::uword closest;
                 double scores = dists.min(closest);
                 return mfX(closest);
             }
-            else {
-                vec weights = arma::pow(dists, -mp/2.0);
-                return arma::dot(weights, fX())/arma::sum(weights);
+            else
+            {
+                vec weights = arma::pow(dists, -mp / 2.0);
+                return arma::dot(weights, fX()) / arma::sum(weights);
             }
         }
 
-        double eval(const vec &point, const vec &dists) const {
+        double eval(const vec &point, const vec &dists) const
+        {
             return eval(point);
         }
 
-        vec evals(const mat &points) const {
+        vec evals(const mat &points) const
+        {
             vec vals = arma::zeros<vec>(points.n_cols);
-            for(int i=0; i < points.n_cols; i++) {
+            for (int i = 0; i < points.n_cols; i++)
+            {
                 vals(i) = eval(points.col(i));
             }
             return vals;
         }
 
-        vec evals(const mat &points, const mat &dists) const {
+        vec evals(const mat &points, const mat &dists) const
+        {
             return evals(points);
         }
-        
+
         //! Method for evaluating the kNN derivative at one point (not implemented)
         /*!
          * \throws std::logic_error Not available for Shepard
          */
-        vec deriv(const vec &point) const {
+        vec deriv(const vec &point) const
+        {
             throw std::logic_error("No derivatives for Shepard");
         }
         void reset() { mNumPoints = 0; }

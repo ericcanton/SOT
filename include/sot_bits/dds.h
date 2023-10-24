@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <memory>
+#include <armadillo>
 #include "common.h"
 #include "utils.h"
 #include <thread>

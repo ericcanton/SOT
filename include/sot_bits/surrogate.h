@@ -9,10 +9,12 @@
 #define SOT_SURROGATE_H
 
 #include "common.h"
+#include <armadillo>
 
-//!SOT namespace
-namespace sot {
-    
+//! SOT namespace
+namespace sot
+{
+
     //! Abstract class for a SOT surrogate model
     /*!
      * This is the abstract class that should be used as a Base class for all
@@ -22,7 +24,8 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    class Surrogate {
+    class Surrogate
+    {
     public:
         //! Method for getting the current number of points
         virtual int numPoints() const = 0; /*!< \returns Current number of points */
@@ -87,6 +90,4 @@ namespace sot {
     };
 }
 
-
 #endif
-

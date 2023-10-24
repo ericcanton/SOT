@@ -5,17 +5,18 @@
  * Created on 7/18/16.
  */
 
-
 #ifndef SOT_kNN_H
 #define SOT_kNN_H
 
 #include "common.h"
 #include "utils.h"
 #include "surrogate.h"
+#include <armadillo>
 
-//!SOT namespace
-namespace sot {
-    
+//! SOT namespace
+namespace sot
+{
+
     //!  k-nearest neighbors
     /*!
      * The kNN method is a robust regression method that approximates the value
@@ -25,14 +26,15 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    class kNN : public Surrogate {
+    class kNN : public Surrogate
+    {
     protected:
-        int mDim; /*!< Number of dimensions */
+        int mDim;       /*!< Number of dimensions */
         int mMaxPoints; /*!< Capacity */
         int mNumPoints; /*!< Current number of points */
-        int mk; /*!< k (number of neighbors used in averaging) */
-        mat mX; /*!< Current points */
-        vec mfX; /*!< Current point values */
+        int mk;         /*!< k (number of neighbors used in averaging) */
+        mat mX;         /*!< Current points */
+        vec mfX;        /*!< Current point values */
     public:
         //! Constructor
         /*!
@@ -40,7 +42,8 @@ namespace sot {
          * \param dim Number of dimensions
          * \param k (number of neighbors used in averaging)
          */
-        kNN(int maxPoints, int dim, int k) {
+        kNN(int maxPoints, int dim, int k)
+        {
             mDim = dim;
             mNumPoints = 0;
             mMaxPoints = maxPoints;
@@ -49,22 +52,28 @@ namespace sot {
             mfX.resize(maxPoints);
         }
 
-        int dim() const {
+        int dim() const
+        {
             return mDim;
         }
-        int numPoints() const {
+        int numPoints() const
+        {
             return mNumPoints;
         }
-        mat X() const {
-            return mX.cols(0, mNumPoints-1);
+        mat X() const
+        {
+            return mX.cols(0, mNumPoints - 1);
         }
-        vec X(int i) const {
+        vec X(int i) const
+        {
             return mX.col(i);
         }
-        vec fX() const {
-            return mfX.rows(0, mNumPoints-1);
+        vec fX() const
+        {
+            return mfX.rows(0, mNumPoints - 1);
         }
-        double fX(int i) const {
+        double fX(int i) const
+        {
             return mfX(i);
         }
 
@@ -75,8 +84,10 @@ namespace sot {
          *
          * \throws std::logic_error if one point is supplied or if capacity is exceeded
          */
-        void addPoint(const vec &point, double funVal) {
-            if(mNumPoints >= mMaxPoints) {
+        void addPoint(const vec &point, double funVal)
+        {
+            if (mNumPoints >= mMaxPoints)
+            {
                 throw std::logic_error("Capacity exceeded");
             }
             mX.col(mNumPoints) = point;
@@ -91,13 +102,16 @@ namespace sot {
          *
          * \throws std::logic_error if one point is supplied or if capacity is exceeded
          */
-        void addPoints(const mat &points, const vec &funVals) {
+        void addPoints(const mat &points, const vec &funVals)
+        {
             int n = points.n_cols;
 
-            if(n < 2) {
+            if (n < 2)
+            {
                 throw std::logic_error("Use add_point instead");
             }
-            if(mNumPoints + n > mMaxPoints) {
+            if (mNumPoints + n > mMaxPoints)
+            {
                 throw std::logic_error("Capacity exceeded");
             }
 
@@ -106,37 +120,45 @@ namespace sot {
             mNumPoints += n;
         }
 
-        double eval(const vec &point) const {
+        double eval(const vec &point) const
+        {
             vec dists = squaredPointSetDistance(point, X());
             uvec indices = sort_index(dists);
             return arma::mean(mfX(indices.rows(0, mk - 1)));
         }
 
-        double eval(const vec &point, const vec &dists) const {
+        double eval(const vec &point, const vec &dists) const
+        {
             return eval(point);
         }
-        vec evals(const mat &points) const {
+        vec evals(const mat &points) const
+        {
             vec vals = arma::zeros<vec>(points.n_cols);
-            for(int i=0; i < points.n_cols; i++) {
+            for (int i = 0; i < points.n_cols; i++)
+            {
                 vals(i) = eval(points.col(i));
             }
             return vals;
         }
-        vec evals(const mat &points, const mat &dists) const {
+        vec evals(const mat &points, const mat &dists) const
+        {
             return evals(points);
         }
         //! Method for evaluating the kNN derivative at one point (not implemented)
         /*!
          * \throws std::logic_error Not available for kNN
          */
-        vec deriv(const vec& point) const {
+        vec deriv(const vec &point) const
+        {
             throw std::logic_error("No derivatives for kNN");
-        }        
-        void reset() {
+        }
+        void reset()
+        {
             mNumPoints = 0;
         }
         //! Fits kNN (does nothing)
-        void fit() {
+        void fit()
+        {
             return;
         }
     };

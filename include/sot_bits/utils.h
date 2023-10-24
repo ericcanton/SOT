@@ -5,57 +5,60 @@
  * Created on 7/18/16.
  */
 
-
 #ifndef SOT_UTILS_H
 #define SOT_UTILS_H
 
-#include <thread>         // std::this_thread::sleep_for
-#include <chrono>         // std::chrono::seconds
+#include <armadillo>
+#include <thread> // std::this_thread::sleep_for
+#include <chrono> // std::chrono::seconds
 #include "common.h"
 
-//!SOT namespace
-namespace sot {
-    
+//! SOT namespace
+namespace sot
+{
+
     //! Fast level-2 distance computation between one point and a set of points
     /*!
-     * 
+     *
      * \param x The vector
      * \param Y The matrix
      * \returns The vector of distances between x and the columns of Y
-     * 
+     *
      * \tparam MatType Matrix class
      * \tparam VecType Vector class
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
      */
     template <class MatType = mat, class VecType = vec>
-    inline VecType squaredPointSetDistance(const VecType& x, const MatType& Y) {
-        return arma::abs(arma::repmat(arma::sum(x % x,0), Y.n_cols,1) + arma::sum(Y % Y,0).t() - 2*Y.t()*x);
+    inline VecType squaredPointSetDistance(const VecType &x, const MatType &Y)
+    {
+        return arma::abs(arma::repmat(arma::sum(x % x, 0), Y.n_cols, 1) + arma::sum(Y % Y, 0).t() - 2 * Y.t() * x);
     };
-    
+
     //! Fast level-3 distance computation between two sets of points
     /*!
-     * 
+     *
      * \param X The first matrix
      * \param Y The second matrix
      * \returns The matrix of distances between the columns of X and the columns of Y
-     * 
+     *
      * \tparam MatType Matrix class
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
      */
     template <class MatType = mat>
-    inline MatType squaredPairwiseDistance(const MatType& X, const MatType& Y) {
-        MatType dists = - 2*(X.t()*Y);
+    inline MatType squaredPairwiseDistance(const MatType &X, const MatType &Y)
+    {
+        MatType dists = -2 * (X.t() * Y);
         dists.each_row() += arma::sum(Y % Y, 0);
         dists.each_col() += arma::sum(X % X, 0).t();
         dists = arma::abs(dists);
         return dists;
     };
-    
+
     //! Map one point to the unit box
     /*!
-     * 
+     *
      * \param x Point
      * \param xLow Lower variable bounds
      * \param xUp Upper variable bounds
@@ -63,27 +66,29 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    inline vec toUnitBox(const vec& x, const vec& xLow, const vec& xUp) {
-        return (x - xLow)/(xUp - xLow);
+    inline vec toUnitBox(const vec &x, const vec &xLow, const vec &xUp)
+    {
+        return (x - xLow) / (xUp - xLow);
     };
-    
+
     //! Map multiple points to the unit box
     /*!
-     * 
+     *
      * \param X Points
      * \param xLow Lower variable bounds
      * \param xUp Upper variable bounds
      * \returns Point in X mapped to the unit box
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
      */
-    inline mat toUnitBox(const mat& X, const vec& xLow, const vec& xUp) {
-        return (X - arma::repmat(xLow, 1, X.n_cols))/arma::repmat(xUp - xLow, 1, X.n_cols);
+    inline mat toUnitBox(const mat &X, const vec &xLow, const vec &xUp)
+    {
+        return (X - arma::repmat(xLow, 1, X.n_cols)) / arma::repmat(xUp - xLow, 1, X.n_cols);
     };
-    
+
     //! Map one point from the unit box to another hypercube
     /*!
-     * 
+     *
      * \param x Point
      * \param xLow Lower variable bounds
      * \param xUp Upper variable bounds
@@ -91,13 +96,14 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    inline vec fromUnitBox(const vec& x, const vec& xLow, const vec& xUp) {
+    inline vec fromUnitBox(const vec &x, const vec &xLow, const vec &xUp)
+    {
         return xLow + (xUp - xLow) % x;
     };
-    
+
     //! Map multiple points from the unit box to another hypercube
     /*!
-     * 
+     *
      * \param X Points
      * \param xLow Lower variable bounds
      * \param xUp Upper variable bounds
@@ -105,26 +111,29 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    inline mat fromUnitBox(const mat& X, const vec& xLow, const vec& xUp) {
+    inline mat fromUnitBox(const mat &X, const vec &xLow, const vec &xUp)
+    {
         return arma::repmat(xLow, 1, X.n_cols) + arma::repmat(xUp - xLow, 1, X.n_cols) % X;
     };
-    
-    //! Map a vector of values to the range [0, 1] 
+
+    //! Map a vector of values to the range [0, 1]
     /*!
      * \param x Vector of values
      * \returns Values in x mapped to the range [0, 1]
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    inline vec unitRescale(const vec& x) {
+    inline vec unitRescale(const vec &x)
+    {
         double xMin = arma::min(x);
         double xMax = arma::max(x);
-        if( xMin == xMax ) {
+        if (xMin == xMax)
+        {
             return arma::ones(x.n_elem);
         }
-        return (x - xMin)/(xMax - xMin);
+        return (x - xMin) / (xMax - xMin);
     };
-    
+
     //! Optimization result class
     /*!
      * This is a class that stores the result from the optimization runs and
@@ -135,22 +144,24 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    class Result {
+    class Result
+    {
     protected:
         int mNumEvals = 0; /*!< Number of evaluations */
-        int mDim; /*!< Number of dimensions */
-        int mMaxEvals; /*!< Evaluation budget */
-        vec mfX; /*!< Function values */
-        mat mX; /*!< Evaluated points */
-        double mfBest; /*!< Best function value */
-        vec mxBest; /*!< Best solution found */
+        int mDim;          /*!< Number of dimensions */
+        int mMaxEvals;     /*!< Evaluation budget */
+        vec mfX;           /*!< Function values */
+        mat mX;            /*!< Evaluated points */
+        double mfBest;     /*!< Best function value */
+        vec mxBest;        /*!< Best solution found */
     public:
         //! Constructor
         /*!
          * \param maxEvals Evaluation budget
-         * \param dim Number of dimensions 
+         * \param dim Number of dimensions
          */
-        Result(int maxEvals, int dim) {
+        Result(int maxEvals, int dim)
+        {
             mMaxEvals = maxEvals;
             mNumEvals = 0;
             mDim = dim;
@@ -163,7 +174,8 @@ namespace sot {
         /*!
          * \returns Number of dimensions
          */
-        int dim() const {
+        int dim() const
+        {
             return mDim;
         }
 
@@ -171,7 +183,8 @@ namespace sot {
         /*!
          * \returns Number of finished evaluations
          */
-        int numEvals() const {
+        int numEvals() const
+        {
             return mNumEvals;
         }
 
@@ -179,30 +192,36 @@ namespace sot {
         /*!
          * \returns Values of finished evluations
          */
-        vec fX() const {
-            if(mNumEvals == 0) {
+        vec fX() const
+        {
+            if (mNumEvals == 0)
+            {
                 throw std::logic_error("No evaluations have been added!");
             }
-            return mfX.rows(0, mNumEvals-1);
+            return mfX.rows(0, mNumEvals - 1);
         }
 
         //! Method for getting the evaluated points
         /*!
          * \returns Evaluated points
          */
-        mat X() const {
-            if(mNumEvals == 0) {
+        mat X() const
+        {
+            if (mNumEvals == 0)
+            {
                 throw std::logic_error("No evaluations have been added!");
             }
-            return mX.cols(0, mNumEvals-1);
+            return mX.cols(0, mNumEvals - 1);
         }
 
         //! Method for getting the best solution found so far
         /*!
          * \returns Best solution found so far
          */
-        vec xBest() const {
-            if(mNumEvals == 0) {
+        vec xBest() const
+        {
+            if (mNumEvals == 0)
+            {
                 throw std::logic_error("No evaluations have been added!");
             }
             return mxBest;
@@ -212,8 +231,10 @@ namespace sot {
         /*!
          * \returns Value of best solution found so far
          */
-        double fBest() const {
-            if(mNumEvals == 0) {
+        double fBest() const
+        {
+            if (mNumEvals == 0)
+            {
                 throw std::logic_error("No evaluations have been added!");
             }
             return mfBest;
@@ -224,14 +245,17 @@ namespace sot {
          * \param x Evaluated point
          * \param funVal Value of the evaluated point
          */
-        void addEval(const vec &x, double funVal) {
-            if(mNumEvals >= mMaxEvals) {
+        void addEval(const vec &x, double funVal)
+        {
+            if (mNumEvals >= mMaxEvals)
+            {
                 throw std::logic_error("Capacity exceeded");
             }
 
             mX.col(mNumEvals) = x;
             mfX(mNumEvals) = funVal;
-            if (funVal < mfBest) {
+            if (funVal < mfBest)
+            {
                 mfBest = funVal;
                 mxBest = x;
             }
@@ -242,15 +266,18 @@ namespace sot {
          * \param X Evaluated points
          * \param funVals Values of the evaluated points
          */
-        void addEvals(const mat &X, const vec &funVals) {
-            for(int i=0; i < X.n_cols; i++) {
+        void addEvals(const mat &X, const vec &funVals)
+        {
+            for (int i = 0; i < X.n_cols; i++)
+            {
                 vec x = X.col(i);
                 addEval(x, funVals(i));
             }
         }
-        
+
         //! Method for resetting the object
-        void reset() {
+        void reset()
+        {
             mNumEvals = 0;
             mX = std::numeric_limits<double>::max() * arma::ones<mat>(mDim, mMaxEvals);
             mxBest = std::numeric_limits<double>::max() * arma::ones<mat>(mDim);
@@ -258,20 +285,22 @@ namespace sot {
             mfBest = std::numeric_limits<double>::max();
         }
     };
-    
+
     //! Computes the Pareto front
     /*!
      * \param x Vector of values
      * \param y Vector of values
      * \returns Indices of the points on the Pareto front
-     * 
+     *
      * \throws std::logic_error If x and y are not of the same length
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
-     */    
-    inline uvec paretoFront(const vec &x, const vec &y) {
-        if(x.n_rows != y.n_rows) { 
-            throw std::logic_error("paretoFront: x and y need to have the same length"); 
+     */
+    inline uvec paretoFront(const vec &x, const vec &y)
+    {
+        if (x.n_rows != y.n_rows)
+        {
+            throw std::logic_error("paretoFront: x and y need to have the same length");
         }
         uvec isort = sort_index(x);
         vec x2 = x(isort);
@@ -280,9 +309,11 @@ namespace sot {
         indvec(0) = isort(0);
         int indcur = 1;
         double ycur = y2(0);
-        
-        for(int i=1; i < x.n_rows; i++) {
-            if (y2(i) <= ycur) {
+
+        for (int i = 1; i < x.n_rows; i++)
+        {
+            if (y2(i) <= ycur)
+            {
                 indvec(indcur) = isort(i);
                 ycur = y2(i);
                 indcur++;
@@ -291,23 +322,25 @@ namespace sot {
         indvec = indvec.head(indcur);
         return indvec;
     };
-    
+
     //! Computes the cumulative minimum
     /*!
      * \param x Vector of values
      * \returns Cumulative minimum of x
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
-     */     
-    inline vec cumMin(const vec& x) {
+     */
+    inline vec cumMin(const vec &x)
+    {
         vec out(x.n_elem);
         out(0) = x(0);
-        for(int i=1; i < x.n_elem; i++) {
-            out(i) = std::min(x(i), out(i-1));
+        for (int i = 1; i < x.n_elem; i++)
+        {
+            out(i) = std::min(x(i), out(i - 1));
         }
         return out;
     };
-    
+
     //! Stop watch class
     /*!
      * This class can be used to measure the elapsed time (in seconds) for different strategies
@@ -316,26 +349,32 @@ namespace sot {
      * \class StopWatch
      *
      * \author David Eriksson, dme65@cornell.edu
-     */    
-    class StopWatch {
+     */
+    class StopWatch
+    {
     private:
         std::chrono::time_point<std::chrono::system_clock> mStartTime; /*!< Time when the watch was started */
-        std::chrono::time_point<std::chrono::system_clock> mEndTime; /*!< Time when the watch was stopped */
-        bool mStarted; /*!< True if the watch has been started */
+        std::chrono::time_point<std::chrono::system_clock> mEndTime;   /*!< Time when the watch was stopped */
+        bool mStarted;                                                 /*!< True if the watch has been started */
     public:
         //! Constructor
         /*!
          * Initializes a watch that isn't started
          */
-        StopWatch() {
+        StopWatch()
+        {
             mStarted = false;
         }
         //! Starts the watch
         /*!
          * \throws std::logic_error If the watch has already been started
          */
-        void start() {
-            if(mStarted) { throw std::logic_error("StopWatch: The StopWatch is already running, so can't start!"); }
+        void start()
+        {
+            if (mStarted)
+            {
+                throw std::logic_error("StopWatch: The StopWatch is already running, so can't start!");
+            }
             mStartTime = std::chrono::system_clock::now();
             mStarted = true;
         }
@@ -344,46 +383,52 @@ namespace sot {
          * \returns Time elapsed (seconds) since the watch was started
          * \throws std::logic_error If the watch hasn't already been started
          */
-        double stop() {
-            if(not mStarted) { throw std::logic_error("StopWatch: The StopWatch is not running, so can't stop!"); }
+        double stop()
+        {
+            if (not mStarted)
+            {
+                throw std::logic_error("StopWatch: The StopWatch is not running, so can't stop!");
+            }
             mEndTime = std::chrono::system_clock::now();
             mStarted = false;
             std::chrono::duration<double> elapsedSeconds = mEndTime - mStartTime;
             return elapsedSeconds.count();
         }
     };
-    
-    
+
     //! Generate a random integer
     /*!
      * \param i Specifies the upper range (i IS included)
      * \returns Random integer in the range [0, i]
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
-     */       
-    inline double randi(int i) { 
+     */
+    inline double randi(int i)
+    {
         std::uniform_int_distribution<int> randi(0, i);
         return randi(rng::mt);
     }
-    
+
     //! Generate a N(0,1) realization
     /*!
      * \returns Realization drawn from a N(0,1) distribution
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
      */
-    inline double randn() {
+    inline double randn()
+    {
         std::normal_distribution<double> randn(0.0, 1.0);
         return randn(rng::mt);
     }
-    
+
     //! Generate a U[0,1] realization
     /*!
      * \returns Realization drawn from a U[0,1] distribution
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
      */
-    inline double rand() {
+    inline double rand()
+    {
         std::uniform_real_distribution<double> rand(0, 1);
         return rand(rng::mt);
     }
@@ -392,29 +437,31 @@ namespace sot {
     /*!
      * Uses the high_resolution_clock in chrono to create a random seed for SOT
      * and Armadillo. By default SOT and Armadillo use seed 0 each time for reproducibility.
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
      */
-    inline void setSeedRandom() {
+    inline void setSeedRandom()
+    {
         // Set the armadillo seed randomly
         arma::arma_rng::set_seed_random();
-        
+
         // Set the SOT seed using chrono
         typedef std::chrono::high_resolution_clock myClock;
         myClock::time_point beginning = myClock::now();
         myClock::duration d = myClock::now() - beginning;
         unsigned newSeed = d.count();
-                
+
         rng::mt.seed(newSeed);
     }
-    
+
     //! Set the seed to a given seed
     /*!
      * Sets the seed of both SOT and Armadillo to the given seed.
-     * 
+     *
      * \author David Eriksson, dme65@cornell.edu
      */
-    inline void setSeed(unsigned seed) {
+    inline void setSeed(unsigned seed)
+    {
         arma::arma_rng::set_seed(seed);
         rng::mt.seed(seed);
     }

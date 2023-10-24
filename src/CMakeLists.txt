@@ -1,3 +1,7 @@
+project(sotLibExample CXX)
+
+##################################################
+# Copied from tests/CMakeLists.txt, should be moved to a common file
 # Find dependencies
 find_package(Armadillo REQUIRED)
 find_package(Threads REQUIRED)
@@ -10,9 +14,8 @@ message(STATUS "Found LAPACK: " ${LAPACK_LIBRARIES})
 SET(libdirs ${ARMADILLO_SOURCE_DIR} ${BLAS_SOURCE_DIR} ${LAPACK_SOURCE_DIR})
 SET(includes ${ARMADILLO_INCLUDE_DIRS} ${BLAS_INCLUDE_DIRS} ${LAPACK_INCLUDE_DIRS})
 SET(libs ${ARMADILLO_LIBRARIES} ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-LINK_DIRECTORIES(${libdirs})
+LINK_DIRECTORIES(${libdirs} ${libs})
 include_directories(${includes} "../include")
-project(sotLibExample CXX)
 
 # Enable C++11 support
 include(CheckCXXCompilerFlag)
@@ -26,6 +29,7 @@ else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no \
         C++11 support. Please use a different C++ compiler.")
 endif()
+
 
 add_library(sotLib ../include/sot.h)
 add_executable(example main.cpp)

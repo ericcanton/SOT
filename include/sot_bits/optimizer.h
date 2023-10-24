@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "utils.h"
+#include <armadillo>
 #include <thread>
 #include <memory>
 #include <mutex>

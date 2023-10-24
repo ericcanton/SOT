@@ -1,4 +1,4 @@
-#include <sot.h>
+#include "sot.h"
 using namespace sot;
 
 int main(int argc, char **argv)

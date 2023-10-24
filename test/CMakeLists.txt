@@ -1,10 +1,17 @@
 # Find dependencies
 find_package(Armadillo REQUIRED)
+message(STATUS "Found Armadillo: " ${ARMADILLO_LIBRARIES})
 find_package(Threads REQUIRED)
+message(STATUS "Found Threads: " ${THREADS_LIBRARIES})
 find_package(BLAS REQUIRED)
 message(STATUS "Found BLAS: " ${BLAS_LIBRARIES})
 find_package(LAPACK REQUIRED)
 message(STATUS "Found LAPACK: " ${LAPACK_LIBRARIES})
+
+find_path(BLAS_INCLUDE_DIRS cblas.h
+  /usr/include
+  /usr/local/include
+  $ENV{BLAS_HOME}/include)
 
 # Set the library and include directories
 SET(libdirs ${ARMADILLO_SOURCE_DIR} ${BLAS_SOURCE_DIR} ${LAPACK_SOURCE_DIR})
@@ -25,6 +32,7 @@ else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no \
         C++11 support. Please use a different C++ compiler.")
 endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -larmadillo -llapack -lblas")
 
 if(CMAKE_USE_LCOV)
     message(STATUS "Adding support for lcov")

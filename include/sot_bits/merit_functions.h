@@ -8,6 +8,7 @@
 #ifndef SOT_MERIT_FUNCTIONS_H
 #define SOT_MERIT_FUNCTIONS_H
 
+#include <armadillo>
 #include <memory>
 #include "common.h"
 #include "utils.h"

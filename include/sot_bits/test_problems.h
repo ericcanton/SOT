@@ -9,6 +9,7 @@
 #define SOT_TEST_PROBLEMS_H
 
 #include <cmath>
+#include <armadillo>
 #include <memory>
 #include "common.h"
 #include "problem.h"

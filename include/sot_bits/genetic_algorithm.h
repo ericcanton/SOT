@@ -14,6 +14,7 @@
 #include <thread>
 #include <mutex>
 #include <memory>
+#include <armadillo>
 
 //! SOT namespace
 namespace sot

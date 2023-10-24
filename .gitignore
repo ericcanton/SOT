@@ -11,3 +11,4 @@ CMakeDoxyfile.in
 CMakeDoxygenDefaults.cmake
 CTestTestfile.cmake
 Makefile
+*.a

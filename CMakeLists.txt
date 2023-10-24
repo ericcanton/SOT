@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 project(SOT)
 
 # Build release if no build type has been specified
@@ -22,7 +22,7 @@ add_subdirectory (test)
 
 # The version number.
 set (SOT_VERSION_MAJOR 0)
-set (SOT_VERSION_MINOR 10)
+set (SOT_VERSION_MINOR 11)
 
 include_directories(include)
 

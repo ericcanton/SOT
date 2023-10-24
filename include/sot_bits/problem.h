@@ -5,13 +5,14 @@
  * Created on 7/18/16.
  */
 
-
 #ifndef SOT_PROBLEM_H
 #define SOT_PROBLEM_H
+#include <armadillo>
 
-//!SOT namespace
-namespace sot {
-    
+//! SOT namespace
+namespace sot
+{
+
     //! Abstract class for a SOT optimization problem
     /*!
      * This is the abstract class that should be used as a Base class for all
@@ -21,13 +22,14 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    class Problem {
+    class Problem
+    {
     public:
         //! Method for getting the lower variable bounds.
-        virtual vec lBounds() const = 0; /*!< \returns Upper variable bounds */      
+        virtual vec lBounds() const = 0; /*!< \returns Upper variable bounds */
         //! Method for getting the upper variable bounds.
         virtual vec uBounds() const = 0; /*!< \returns Upper variable bounds */
-        //! Method for getting the number of dimensions      
+        //! Method for getting the number of dimensions
         virtual int dim() const = 0; /*!< \returns The number of dimensions */
         //! Method for getting global minimum value
         virtual double min() const = 0; /*!< \returns Value at the global minumum */
@@ -49,7 +51,6 @@ namespace sot {
         virtual vec evals(const mat &points) const = 0;
     };
 
-
     //! Abstract class for a SOT test problem
     /*!
      * This is the abstract class that should be used as a Base class for all
@@ -59,16 +60,19 @@ namespace sot {
      *
      * \author David Eriksson, dme65@cornell.edu
      */
-    class TestProblem : public Problem {
+    class TestProblem : public Problem
+    {
     public:
         //! Method for evaluating the objective function at multiple points
         /*!
          * \param points Is the next points for which to evaluate the objective function
          * \return The values of the objective function at the input
          */
-        vec evals(const mat &points) const {
+        vec evals(const mat &points) const
+        {
             vec fvals = arma::zeros<vec>(points.n_cols);
-            for(int i=0; i < points.n_cols; i++) {
+            for (int i = 0; i < points.n_cols; i++)
+            {
                 vec x = points.col(i);
                 fvals(i) = eval(x);
             }
@@ -78,4 +82,3 @@ namespace sot {
 }
 
 #endif
-
